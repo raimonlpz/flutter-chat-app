@@ -1,8 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:chat/helpers/mostrar_alerta.dart';
+import 'package:chat/services/auth_service.dart';
 import 'package:chat/widgets/custom_input.dart';
 import 'package:chat/widgets/labels.dart';
 import 'package:chat/widgets/login_button.dart';
 import 'package:chat/widgets/logo.dart';
-import 'package:flutter/material.dart';
 
 class RegisterPage extends StatelessWidget {
   @override
@@ -47,6 +51,8 @@ class __FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       margin: EdgeInsets.only(top: 40),
       padding: EdgeInsets.symmetric(horizontal: 50),
@@ -71,11 +77,26 @@ class __FormState extends State<_Form> {
             isPassword: true,
           ),
           LoginButton(
-            btnText: 'Ingrese',
-            onPressed: () {
-              print('email: ${emailCtrl.text}');
-              print('password: ${passCtrl.text}');
-            },
+            btnText: 'Crear cuenta',
+            onPressed: authService.authenticating
+                ? null
+                : () async {
+                    FocusScope.of(context).unfocus();
+
+                    final registrationOk = await authService.register(
+                      nameCtrl.text.trim(),
+                      emailCtrl.text.trim(),
+                      passCtrl.text.trim(),
+                    );
+
+                    if (registrationOk == true) {
+                      Navigator.pushReplacementNamed(context, 'usuarios');
+                      // TODO:conectar a socket server
+                    } else {
+                      mostrarAlerta(context, 'Registro incorrecto',
+                          registrationOk ?? 'Credenciales inválidas');
+                    }
+                  },
           )
         ],
       ),
